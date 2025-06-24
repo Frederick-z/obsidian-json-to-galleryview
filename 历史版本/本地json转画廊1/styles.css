@@ -1,0 +1,107 @@
+/* Gallery 主样式 */
+.gallery-container {
+  margin: 20px 0;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+/* 工具栏样式 */
+.gallery-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  padding: 10px 15px;
+  background-color: var(--background-secondary);
+  border-radius: 8px;
+  flex-wrap: wrap;
+}
+
+.toolbar-group {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin: 5px 0;
+}
+
+/* ...之前提供的所有 CSS 样式代码... */
+
+/* 模态窗口样式 */
+.gallery-modal .modal {
+  max-width: 600px;
+}
+
+.gallery-file-btn, 
+.gallery-sample-btn {
+  padding: 8px 16px;
+  margin: 5px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.gallery-file-btn {
+  background-color: var(--interactive-accent);
+  color: var(--text-on-accent);
+  border: none;
+}
+
+.gallery-sample-btn {
+  background-color: var(--background-secondary-alt);
+  border: 1px solid var(--background-modifier-border);
+}
+
+/* 文件选择建议 */
+.gallery-suggestion-name {
+  font-weight: bold;
+}
+
+.gallery-suggestion-path {
+  font-size: 0.8em;
+  color: var(--text-muted);
+}
+
+/* 加载状态 */
+.gallery-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 30px;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid var(--background-modifier-border);
+  border-top-color: var(--interactive-accent);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 15px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* 文件信息 */
+.gallery-file-info {
+  margin-top: 15px;
+  padding: 10px;
+  background-color: var(--background-secondary);
+  border-radius: 4px;
+  font-size: 0.9em;
+}
+
+/* 错误提示 */
+.gallery-error {
+  padding: 15px;
+  background-color: var(--background-modifier-error);
+  color: var(--text-error);
+  border-radius: 4px;
+  white-space: pre-wrap;
+}
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--gallery-columns, 3), 1fr);
+  gap: 20px;
+}

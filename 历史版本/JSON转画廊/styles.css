@@ -1,0 +1,31 @@
+.gallery-block {
+  margin: 1em 0;
+}
+
+.gallery-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.gallery-card {
+  width: 180px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 8px;
+  background: var(--background-secondary);
+  padding: 10px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+}
+
+.gallery-avatar {
+  width: 100%;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 5px;
+  margin-bottom: 8px;
+}
+
+.gallery-field {
+  font-size: 0.9em;
+  margin-top: 4px;
+}

@@ -1,0 +1,351 @@
+/* 网格布局容器 */
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 20px;
+  padding: 15px;
+}
+
+/* 画廊卡片样式 - 匹配图片中的设计 */
+.gallery-card {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 15px;
+  text-align: center;
+}
+
+/* 头像区域 */
+.gallery-avatar-container {
+  margin-bottom: 10px;
+}
+
+.gallery-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin: 0 auto;
+}
+
+/* 信息区域 */
+.gallery-info {
+  font-size: 14px;
+}
+
+/* 字段行 */
+.gallery-field {
+  margin-bottom: 8px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.gallery-key {
+  font-weight: bold;
+  text-align: left;
+}
+
+.gallery-value {
+  text-align: right;
+  flex-grow: 1;
+}
+
+/* 工具栏样式 */
+.gallery-toolbar {
+  display: flex;
+  justify-content: center;
+  padding: 15px;
+  background-color: #f8f8f8;
+  border-radius: 6px;
+  margin-bottom: 10px;
+}
+
+.toolbar-group {
+  display: flex;
+  gap: 10px;
+}
+
+/* 新建项目卡片样式 */
+.gallery-add-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 2px dashed var(--interactive-accent);
+  color: var(--text-muted);
+  padding: 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  height: 160px;
+  background-color: white;
+  transition: all 0.2s ease;
+}
+
+.gallery-add-card:hover {
+  background-color: var(--background-modifier-hover);
+}
+
+.add-icon {
+  font-size: 32px;
+  font-weight: bold;
+  line-height: 1;
+  margin-bottom: 8px;
+}
+
+/* 按钮样式 */
+button {
+  padding: 6px 12px;
+  background-color: #e9e9e9;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+button:hover {
+  background-color: #dcdcdc;
+}
+
+button.active {
+  background-color: var(--interactive-accent);
+  color: white;
+}
+
+/* 表格视图的添加按钮 */
+.add-button, .table-add-button {
+  margin-top: 15px;
+  padding: 10px 20px;
+  background-color: var(--interactive-accent);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.add-button:hover, .table-add-button:hover {
+  background-color: var(--interactive-accent-hover);
+}
+
+/* 空状态容器 */
+.no-data-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 30px;
+}
+
+/* 表单样式 */
+.form-field {
+  margin-bottom: 15px;
+  display: flex;
+  gap: 10px;
+}
+
+.form-field input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 4px;
+}
+
+.add-field-button, .save-button {
+  margin: 10px 5px;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.save-button {
+  background-color: var(--interactive-accent);
+  color: white;
+  border: none;
+}
+
+.add-field-button {
+  background-color: var(--background-secondary);
+  border: 1px solid var(--background-modifier-border);
+}
+
+/* 响应式布局 */
+@media (max-width: 600px) {
+  .gallery-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (min-width: 768px) {
+  .gallery-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 992px) {
+  .gallery-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* 属性表单样式 */
+.properties-container {
+  width: 100%;
+  border-radius: 6px;
+  overflow: hidden;
+  margin-bottom: 20px;
+  background-color: var(--background-primary);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* 属性行样式 */
+.property-row {
+  display: flex;
+  border-bottom: 1px solid var(--background-modifier-border);
+  padding: 12px 15px;
+  align-items: center;
+}
+
+.property-row:last-child {
+  border-bottom: none;
+}
+
+/* 左侧属性单元格 */
+.property-cell {
+  display: flex;
+  align-items: center;
+  width: 45%;
+}
+
+.property-icon {
+  width: 24px;
+  height: 24px;
+  margin-right: 12px;
+  display: inline-block;
+  background-size: contain;
+  background-repeat: no-repeat;
+}
+
+.type-icon { background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg..."); }
+.fields-icon { background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg..."); }
+.level-icon { background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg..."); }
+.source-icon { background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg..."); }
+.cover-icon { background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg..."); }
+.home-icon { background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg..."); }
+.date-icon { background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg..."); }
+
+.property-name {
+  flex-grow: 1;
+  padding: 8px 12px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+/* 右侧值单元格 */
+.value-cell {
+  width: 55%;
+  display: flex;
+}
+
+.property-value {
+  flex-grow: 1;
+  padding: 8px 12px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 4px;
+}
+
+.date-picker {
+  flex-grow: 1;
+  padding: 8px 12px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 4px;
+  font-family: inherit;
+}
+
+/* 添加属性按钮 */
+.add-property {
+  width: 100%;
+  padding: 12px;
+  background-color: transparent;
+  border: 1px dashed var(--interactive-accent);
+  color: var(--interactive-accent);
+  border-radius: 4px;
+  text-align: center;
+  cursor: pointer;
+  margin-bottom: 20px;
+  font-weight: 500;
+}
+
+.add-property:hover {
+  background-color: var(--interactive-accent-bg);
+}
+
+/* 按钮容器 */
+.button-container {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.save-button {
+  background-color: var(--interactive-accent);
+  color: white;
+  border: none;
+  padding: 8px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.cancel-button {
+  background-color: var(--background-secondary);
+  color: var(--text-normal);
+  border: none;
+  padding: 8px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+/* 表单标题 */
+.form-title {
+  color: var(--text-normal);
+  font-weight: 600;
+  margin-bottom: 20px;
+}
+
+/* 卡片样式 */
+.gallery-card {
+  position: relative;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.gallery-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* 编辑按钮样式 */
+.edit-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background-color: rgba(255, 255, 255, 0.8);
+  color: #333;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 12px;
+  cursor: pointer;
+  z-index: 10;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.gallery-card:hover .edit-button {
+  opacity: 1;
+}
+
+.edit-button:hover {
+  background-color: #f0f0f0;
+}

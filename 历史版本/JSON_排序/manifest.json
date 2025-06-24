@@ -1,0 +1,10 @@
+{
+  "id": "markdown-gallery-view",
+  "name": "Markdown Gallery View",
+  "version": "0.1.0",
+  "minAppVersion": "0.15.0",
+  "description": "Render markdown tables inside code blocks as gallery cards",
+  "author": "Your Name",
+  "authorUrl": "https://your-url.com",
+  "main": "main.js"
+}

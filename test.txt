@@ -1,0 +1,695 @@
+--main.ts--
+import { Plugin} from "obsidian";
+import { GalleryModal } from "./galleryModal";
+import { renderGalleryFromJson } from "./render";
+import { GallerySettingTab } from "./settings";
+import { GalleryPluginSettings, DEFAULT_SETTINGS } from "./types";
+
+// 使用命名导出而不是默认导出
+export default class GalleryJsonPlugin extends Plugin {
+  settings: GalleryPluginSettings;
+
+  async onload() {
+    console.log("Loading Gallery JSON plugin");
+    await this.loadSettings();
+    
+    // 注册命令（在同一个文件中处理）
+    this.addCommand({
+      id: "create-gallery-from-json",
+      name: "Create Gallery from JSON File",
+      callback: async () => {
+        new GalleryModal(this.app, this).open();
+      }
+    });
+    
+    // 注册代码块处理器
+    this.registerMarkdownCodeBlockProcessor(
+      "gallery-json", 
+      async (source, el, ctx) => {
+        renderGalleryFromJson(source, el, ctx, this.settings,this.app);
+      }
+    );
+    
+    // 注册设置选项卡
+    this.addSettingTab(new GallerySettingTab(this.app, this));
+    
+    // 添加功能区图标
+    this.addRibbonIcon("layout-grid", "Create Gallery from JSON", () => {
+      new GalleryModal(this.app, this).open();
+    });
+  }
+
+  async loadSettings() {
+    this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+    console.log("Settings loaded:", this.settings);
+  }
+
+  async saveSettings() {
+    await this.saveData(this.settings);
+    console.log("Settings saved");
+  }
+}
+--galleryAttri.ts--
+
+import { App, Modal, TFile, Notice, SuggestModal } from "obsidian";
+import  GalleryJsonPlugin  from "./main";
+import { DEFAULT_SAMPLE_DATA,GalleryItem } from "./types";
+
+export class GalleryItemForm extends Modal {
+  onSubmit: (item: GalleryItem) => void;
+  initialItem: GalleryItem;
+  
+  constructor(
+    app: App,
+    onSubmit: (item: GalleryItem) => void,
+    initialItem?: GalleryItem,
+    
+  ) {
+    super(app);
+    this.onSubmit = onSubmit;
+    this.initialItem = initialItem || {};
+  }
+  
+  onOpen() {
+    const { contentEl } = this;
+    contentEl.empty();
+    
+    const title = Object.keys(this.initialItem).length ? "Edit Item" : "Add New Item";
+    contentEl.createEl("h2", { text: title, cls: "form-title" });
+    
+    // 创建属性表格容器
+    const propertiesTable = contentEl.createDiv({ cls: "properties-container" });
+    
+    // 预定义的属性列表（带图标）
+    const predefinedProperties = [
+      { key: "Type", icon: "type-icon" },
+      { key: "Fields", icon: "fields-icon" },
+      { key: "Level", icon: "level-icon" },
+      { key: "Source", icon: "source-icon" },
+      { key: "Cover", icon: "cover-icon" },
+      { key: "Home", icon: "home-icon" },
+      { key: "Date", icon: "date-icon" }
+    ];
+    
+    // 添加预定义属性行
+    predefinedProperties.forEach(prop => {
+      this.addPropertyRow(
+        propertiesTable,
+        prop.key,
+        prop.icon,
+        this.initialItem[prop.key] || "Empty"
+      );
+    });
+    
+    // 添加自定义属性按钮
+    const addPropButton = contentEl.createEl("button", {
+      cls: "add-property",
+      text: "+ Add a property"
+    });
+    addPropButton.onclick = () => this.addPropertyRow(propertiesTable);
+    
+    // 按钮容器
+    const buttonContainer = contentEl.createDiv({ cls: "button-container" });
+    
+    // 取消按钮
+    const cancelButton = buttonContainer.createEl("button", {
+      cls: "cancel-button",
+      text: "Cancel"
+    });
+    cancelButton.onclick = () => this.close();
+    
+    // 保存按钮
+    const saveButton = buttonContainer.createEl("button", {
+      cls: "save-button",
+      text: "Save"
+    });
+    saveButton.onclick = () => this.saveItem(propertiesTable);
+  }
+  
+  addPropertyRow(
+    container: HTMLElement,
+    keyPreset: string = "",
+    iconClass: string = "",
+    valuePreset: string = ""
+  ) {
+    const row = container.createDiv({ cls: "property-row" });
+    
+    // 左侧属性单元格
+    const propertyCell = row.createDiv({ cls: "property-cell" });
+    
+    if (iconClass) {
+      // 添加属性图标
+      const icon = propertyCell.createSpan({ cls: `property-icon ${iconClass}` });
+      icon.setAttr("title", keyPreset);
+    }
+    
+    const keyInput = propertyCell.createEl("input", {
+      type: "text",
+      placeholder: "Property name",
+      value: keyPreset,
+      cls: "property-name"
+    });
+    
+    // 右侧值单元格
+    const valueCell = row.createDiv({ cls: "value-cell" });
+    
+    // 处理日期类型的特殊输入
+    if (keyPreset.toLowerCase() === "date") {
+      const dateInput = valueCell.createEl("input", {
+        type: "date",
+        value: valuePreset === "Empty" ? "" : valuePreset,
+        cls: "date-picker"
+      });
+    } else {
+      const valueInput = valueCell.createEl("input", {
+        type: "text",
+        placeholder: "Value",
+        value: valuePreset === "Empty" ? "" : valuePreset,
+        cls: "property-value"
+      });
+    }
+  }
+  
+  saveItem(container: HTMLElement) {
+    const rows = container.querySelectorAll(".property-row");
+    const item: GalleryItem = {};
+    let hasData = false;
+    
+    rows.forEach(row => {
+      const keyInput = row.querySelector(".property-name") as HTMLInputElement;
+      const valueInput = row.querySelector(".property-value, .date-picker") as HTMLInputElement;
+      
+      if (keyInput && valueInput) {
+        const key = keyInput.value.trim();
+        const value = valueInput.value.trim();
+        
+        if (key && value) {
+          item[key] = value;
+          hasData = true;
+        }
+      }
+    });
+    
+    if (hasData) {
+      this.onSubmit(item);
+      this.close();
+      new Notice("Item saved successfully");
+    } else {
+      new Notice("Please fill at least one property");
+    }
+  }
+  
+  onClose() {
+    const { contentEl } = this;
+    contentEl.empty();
+  }
+}
+
+--galleryModal.ts--
+import { App, Modal, TFile, Notice, SuggestModal } from "obsidian";
+import  GalleryJsonPlugin  from "./main";
+import { DEFAULT_SAMPLE_DATA,GalleryItem } from "./types";
+
+export class GalleryModal extends Modal {
+  plugin: GalleryJsonPlugin;
+  
+  constructor(app: App, plugin: GalleryJsonPlugin) {
+    super(app);
+    this.plugin = plugin;
+  }
+  
+  onOpen() {
+    const { contentEl } = this;
+    contentEl.empty();
+    contentEl.createEl("h2", { text: "从JSON文件创建画廊" });
+    
+    // 文件选择器
+    const fileSelector = contentEl.createDiv({ cls: "gallery-file-selector" });
+    fileSelector.createEl("p", { text: "选择一个JSON文件:" });
+    
+    // 文件选择按钮
+    const fileButton = fileSelector.createEl("button", { 
+      text: "浏览文件",
+      cls: "gallery-file-btn"
+    });
+    
+    fileButton.onclick = () => {
+      new FileSuggestModal(this.app, async (file) => {
+        await this.processJsonFile(file);
+        this.close();
+      }).open();
+    };
+    
+    // 示例数据按钮
+    const sampleButton = contentEl.createEl("button", {
+      text: "使用示例数据",
+      cls: "gallery-sample-btn"
+    });
+    
+    sampleButton.onclick = async () => {
+      await this.createGalleryWithSampleData();
+      this.close();
+    };
+  }
+  
+  async processJsonFile(file: TFile) {
+    try {
+      const content = await this.app.vault.read(file);
+      await this.createGallery(file.basename, content);
+      new Notice(`🎨 画廊已从 ${file.name} 创建`);
+    } catch (error) {
+      new Notice(`⚠️ 创建画廊错误: ${error.message}`);
+    }
+  }
+  
+  async createGalleryWithSampleData() {
+    try {
+      await this.createGallery("示例画廊", JSON.stringify(DEFAULT_SAMPLE_DATA, null, 2));
+      new Notice("🎨 使用示例数据创建画廊");
+    } catch (error) {
+      new Notice(`⚠️ 创建示例画廊错误: ${error.message}`);
+    }
+  }
+  
+  async createGallery(title: string, jsonContent: string) {
+    const newFileName = `${title.replace(/\s+/g, "-")}-${Date.now()}.md`;
+    const galleryContent = this.generateGalleryContent(jsonContent);
+    
+    try {
+      const newFile = await this.app.vault.create(newFileName, galleryContent);
+      const leaf = this.app.workspace.getLeaf(true);
+      await leaf.openFile(newFile);
+    } catch (error) {
+      throw new Error("无法创建画廊文件。请检查文件名是否有效");
+    }
+  }
+  
+  generateGalleryContent(jsonContent: string): string {
+    return `# JSON画廊\n\n\`\`\`gallery-json\n${jsonContent}\n\`\`\``;
+  }
+}
+
+class FileSuggestModal extends SuggestModal<TFile> {
+  onSelect: (file: TFile) => void;
+  
+  constructor(app: App, onSelect: (file: TFile) => void) {
+    super(app);
+    this.onSelect = onSelect;
+    this.setPlaceholder("搜索JSON文件...");
+  }
+  
+  getSuggestions(query: string): TFile[] {
+    return this.app.vault.getFiles().filter(file => 
+      file.extension === "json" && 
+      file.name.toLowerCase().includes(query.toLowerCase())
+    );
+  }
+  
+  renderSuggestion(file: TFile, el: HTMLElement) {
+    el.createDiv({ text: file.name, cls: "gallery-suggestion-name" });
+    el.createDiv({ text: file.path, cls: "gallery-suggestion-path" });
+  }
+  
+  onChooseSuggestion(file: TFile) {
+    this.onSelect(file);
+  }
+}
+
+
+
+
+--render.ts--
+import { App, MarkdownPostProcessorContext, Modal, TFile } from "obsidian";
+import { GalleryPluginSettings, GalleryItem, ViewType, SortDirection, SortState } from "./types";
+import  {GalleryItemForm}  from "./galleryAttri";
+const allowEdit = true;
+export function renderGalleryFromJson(
+  source: string,
+  container: HTMLElement,
+  ctx: MarkdownPostProcessorContext,
+  settings: GalleryPluginSettings,
+  app: App // ✅ 传入 app 实例
+) {
+  container.empty();
+
+  let data: GalleryItem[] = [];
+
+  // 1. 解析 JSON
+  try {
+    data = JSON.parse(source);
+    if (!Array.isArray(data)) throw new Error("不是数组");
+  } catch (e) {
+    // 2. 如果为空或错误 → 显示 + 卡片
+    data = [];
+  }
+
+  const state = {
+    viewType: settings.defaultView,
+    sort: {
+      field: settings.defaultSortField,
+      direction: settings.defaultSortDirection,
+    },
+  };
+
+  // 3. 渲染
+  renderToolbarAndContent(data, container, state, settings, app);
+}
+
+function renderToolbarAndContent(
+  data: GalleryItem[],
+  container: HTMLElement,
+  state: { viewType: ViewType; sort: SortState },
+  settings: GalleryPluginSettings,
+  app: App
+) {
+  const toolbar = container.createDiv({ cls: "gallery-toolbar" });
+  const contentContainer = container.createDiv({ cls: "gallery-content" });
+
+  const rerender = () => {
+    contentContainer.empty();
+    if (state.viewType === ViewType.GALLERY) {
+      renderGalleryView(data, contentContainer, settings, app);
+    } else {
+      renderTableView(data, contentContainer, state.sort);
+    }
+  };
+
+  renderViewSwitcher(toolbar, state, rerender);
+  rerender();
+}
+
+function renderViewSwitcher(
+  toolbar: HTMLElement,
+  state: { viewType: ViewType },
+  callback: () => void
+) {
+  const viewGroup = toolbar.createDiv({ cls: "toolbar-group" });
+
+  const galleryBtn = viewGroup.createEl("button", { text: "画廊视图" });
+  const tableBtn = viewGroup.createEl("button", { text: "表格视图" });
+
+  galleryBtn.onclick = () => {
+    state.viewType = ViewType.GALLERY;
+    callback();
+  };
+  tableBtn.onclick = () => {
+    state.viewType = ViewType.TABLE;
+    callback();
+  };
+}
+
+function renderGalleryView(
+  data: GalleryItem[],
+  container: HTMLElement,
+  settings: GalleryPluginSettings,
+  app: App
+) {
+  const wrapper = container.createDiv({ cls: "gallery-grid" });
+
+  data.forEach((item,index) => {
+    const card = wrapper.createDiv({ cls: "gallery-card" });
+
+    // 添加点击事件处理
+    card.onclick = (e) => {
+      // 防止事件冒泡到父元素
+      e.stopPropagation();
+      
+      // 打开编辑模态框
+      openEditModal(index, data, wrapper, settings, app);
+    };
+
+
+    const imgUrl = item["Avatar"];
+    if (imgUrl && typeof imgUrl === "string") {
+      const img = card.createEl("img", { attr: { src: imgUrl } });
+      img.classList.add("gallery-avatar");
+    }
+
+    Object.entries(item).forEach(([key, value]) => {
+      if (key === "Avatar") return;
+      card.createEl("div", { text: `${key}: ${value}`, cls: "gallery-field" });
+    });
+    // 添加编辑按钮（可选）
+    const editBtn = card.createEl("button", {
+      cls: "edit-button",
+      text: "Edit"
+    });
+    editBtn.onclick = (e) => {
+      e.stopPropagation();
+      openEditModal(index, data, wrapper, settings, app);
+    };
+
+
+  });
+
+  // ✅ 添加 “+ 添加项” 卡片
+  // 添加新建卡片
+  if (allowEdit) {
+    const addCard = wrapper.createDiv({ cls: "gallery-card gallery-add-card" });
+    addCard.createDiv({ cls: "add-icon", text: "+" });
+    addCard.createDiv({ cls: "add-text", text: "New page" });
+    addCard.onclick = () => {
+      // 调用 openAddModal 并传入 app
+      openAddModal(data, wrapper, settings, app);
+    };
+  }
+//   const addCard = wrapper.createDiv({ cls: "gallery-add-card" });
+//   addCard.innerHTML = `<div class="add-icon">＋</div><div class="add-text">添加新项</div>`;
+//   addCard.onclick = () => openAddModal(data, wrapper, settings, app);
+}
+
+// ✅ 添加项弹窗 Modal
+function openAddModal(
+  data: GalleryItem[],
+  wrapper: HTMLElement,
+  settings: GalleryPluginSettings,
+  app: App
+) {
+    // 定义添加新项的回调函数
+  const onAddItem = (newItem: GalleryItem) => {
+    data.push(newItem);
+    // 重新渲染画廊视图
+    renderGalleryView(data, wrapper, settings,app);
+    // 更新代码块内容（如果需要）
+    // updateCodeBlock(...);
+  };
+  new GalleryItemForm(app, onAddItem).open();
+
+}
+
+// ✅ 添加编辑项弹窗 Modal
+function openEditModal(
+  index: number,
+  data: GalleryItem[],
+  wrapper: HTMLElement,
+  settings: GalleryPluginSettings,
+  app: App
+) {
+  // 定义编辑项的回调函数
+  const onEditItem = (editedItem: GalleryItem) => {
+    // 更新数据数组中对应索引的项
+    data[index] = editedItem;
+    
+    // 重新渲染画廊视图
+    renderGalleryView(data, wrapper, settings, app);
+    
+    // 如果需要更新代码块内容
+    // updateCodeBlock(source, data, ctx);
+    
+  };
+  
+  // 创建并打开表单模态框，传入当前项作为初始值
+  new GalleryItemForm(app, onEditItem, data[index]).open();
+}
+
+
+function renderTableView(data: GalleryItem[], container: HTMLElement, sort: SortState) {
+  const table = container.createEl("table", { cls: "gallery-table" });
+  const thead = table.createEl("thead");
+  const tbody = table.createEl("tbody");
+
+  if (data.length === 0) {
+    tbody.createEl("tr").createEl("td", { text: "无数据" });
+    return;
+  }
+
+  const keys = Object.keys(data[0]);
+
+  const headRow = thead.createEl("tr");
+  keys.forEach(key => {
+    headRow.createEl("th", { text: key });
+  });
+
+  data.forEach(item => {
+    const row = tbody.createEl("tr");
+    keys.forEach(key => {
+      row.createEl("td", { text: item[key] ?? "" });
+    });
+  });
+
+  
+}
+
+--setttings.ts--
+import { App, PluginSettingTab, Setting } from "obsidian";
+import  GalleryJsonPlugin  from "./main";
+import { GalleryPluginSettings, ViewType, SortDirection } from "./types";
+
+export class GallerySettingTab extends PluginSettingTab {
+  plugin: GalleryJsonPlugin;
+
+  constructor(app: App, plugin: GalleryJsonPlugin) {
+    super(app, plugin);
+    this.plugin = plugin;
+  }
+
+  async display(): Promise<void> {
+    const { containerEl } = this;
+    containerEl.empty();
+    containerEl.createEl("h2", { text: "Gallery JSON Settings" });
+    
+    // 默认视图设置
+    new Setting(containerEl)
+      .setName("Default View")
+      .setDesc("Initial view when gallery is loaded")
+      .addDropdown(dropdown => 
+        dropdown
+          .addOption(ViewType.GALLERY, "Gallery View")
+          .addOption(ViewType.TABLE, "Table View")
+          .setValue(this.plugin.settings.defaultView)
+          .onChange(async value => {
+            this.plugin.settings.defaultView = value as ViewType;
+            await this.plugin.saveSettings();
+          })
+      );
+    
+    // 画廊列数设置
+    new Setting(containerEl)
+      .setName("Gallery Columns")
+      .setDesc("Number of columns in gallery view")
+      .addSlider(slider => 
+        slider
+          .setLimits(1, 5, 1)
+          .setValue(this.plugin.settings.galleryColumns)
+          .setDynamicTooltip()
+          .onChange(async value => {
+            this.plugin.settings.galleryColumns = value;
+            await this.plugin.saveSettings();
+          })
+      );
+    
+    // 默认排序字段
+    new Setting(containerEl)
+      .setName("Default Sort Field")
+      .setDesc("Field to sort by default (leave blank for none)")
+      .addText(text => 
+        text
+          .setPlaceholder("e.g., Name")
+          .setValue(this.plugin.settings.defaultSortField || "")
+          .onChange(async value => {
+            this.plugin.settings.defaultSortField = value || null;
+            await this.plugin.saveSettings();
+          })
+      );
+    
+    // 默认排序方向
+    new Setting(containerEl)
+      .setName("Default Sort Direction")
+      .setDesc("Default sort direction")
+      .addDropdown(dropdown => 
+        dropdown
+          .addOption(SortDirection.ASC, "Ascending (A-Z, 0-9)")
+          .addOption(SortDirection.DESC, "Descending (Z-A, 9-0)")
+          .setValue(this.plugin.settings.defaultSortDirection)
+          .onChange(async value => {
+            this.plugin.settings.defaultSortDirection = value as SortDirection;
+            await this.plugin.saveSettings();
+          })
+      );
+    
+    // 自动刷新设置
+    new Setting(containerEl)
+      .setName("Auto Refresh")
+      .setDesc("Automatically update galleries when files change")
+      .addToggle(toggle => 
+        toggle
+          .setValue(this.plugin.settings.autoRefresh)
+          .onChange(async value => {
+            this.plugin.settings.autoRefresh = value;
+            await this.plugin.saveSettings();
+          })
+      );
+    
+    // 缓存外部文件
+    new Setting(containerEl)
+      .setName("Cache External Files")
+      .setDesc("Cache content of external JSON files for faster loading")
+      .addToggle(toggle => 
+        toggle
+          .setValue(this.plugin.settings.cacheExternalFiles)
+          .onChange(async value => {
+            this.plugin.settings.cacheExternalFiles = value;
+            await this.plugin.saveSettings();
+          })
+      );
+  }
+}
+--types.ts--
+import { Notice } from "obsidian";
+
+// 视图类型
+export enum ViewType {
+  GALLERY = "gallery",
+  TABLE = "table"
+}
+
+// 排序方向
+export enum SortDirection {
+  ASC = "asc",
+  DESC = "desc"
+}
+
+// 排序状态
+export interface SortState {
+  field: string | null;
+  direction: SortDirection;
+}
+
+// 插件设置
+export interface GalleryPluginSettings {
+  defaultView: ViewType;
+  galleryColumns: number;
+  autoRefresh: boolean;
+  cacheExternalFiles: boolean;
+  defaultSortField: string | null;
+  defaultSortDirection: SortDirection;
+}
+
+// 默认设置
+export const DEFAULT_SETTINGS: GalleryPluginSettings = {
+  defaultView: ViewType.GALLERY,
+  galleryColumns: 3,
+  autoRefresh: true,
+  cacheExternalFiles: true,
+  defaultSortField: null,
+  defaultSortDirection: SortDirection.ASC
+};
+
+// 示例数据
+export const DEFAULT_SAMPLE_DATA = [
+  {
+    "Avatar": "https://randomuser.me/api/portraits/women/68.jpg",
+    "Name": "Alice",
+    "Age": 28,
+    "Job": "Engineer"
+  },
+  {
+    "Avatar": "https://randomuser.me/api/portraits/men/45.jpg",
+    "Name": "Bob",
+    "Age": 35,
+    "Job": "Designer"
+  }
+];
+
+// 修复：添加 GalleryItem 类型导出
+export type GalleryItem = Record<string, any>;

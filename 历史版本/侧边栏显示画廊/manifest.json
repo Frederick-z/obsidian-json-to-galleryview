@@ -1,0 +1,9 @@
+{
+  "id": "table-gallery-view",
+  "name": "Table Gallery View",
+  "version": "1.0.0",
+  "minAppVersion": "1.0.0",
+  "description": "Display tabular data as gallery or list in Obsidian.",
+  "author": "Your Name",
+  "main": "main.js"
+}
