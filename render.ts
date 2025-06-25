@@ -50,7 +50,7 @@ function renderToolbarAndContent(
     if (state.viewType === ViewType.GALLERY) {
       renderGalleryView(data, contentContainer, settings, app, source, ctx, container);
     } else {
-      renderTableView(data, contentContainer, state.sort);
+      renderTableView(data, contentContainer, settings, app, source, ctx, container);
     }
   };
 
@@ -97,16 +97,24 @@ function renderGalleryView(
       openEditModal(index, data, wrapper, settings, app, source, ctx, rootContainer);
     };
 
+
+
+    // 左侧图像
+    const avatarContainer = card.createDiv({ cls: "gallery-avatar-container" });
     const imgUrl = item["Avatar"];
     if (imgUrl && typeof imgUrl === "string") {
-      const img = card.createEl("img", { attr: { src: imgUrl } });
+      const img = avatarContainer.createEl("img", { attr: { src: imgUrl } });
       img.classList.add("gallery-avatar");
     }
 
+    // 右侧信息容器
+    const infoDiv = card.createDiv({ cls: "gallery-info" });
+    
     Object.entries(item).forEach(([key, value]) => {
       if (key === "Avatar") return;
-      card.createEl("div", { text: `${key}: ${value}`, cls: "gallery-field" });
+      infoDiv.createEl("div", { text: `${key}: ${value}`, cls: "gallery-field" });
     });
+
 
     const editBtn = card.createEl("button", {
       cls: "edit-button",
@@ -181,6 +189,7 @@ function openAddModal(
   const onAddItem = async (newItem: GalleryItem) => {
     data.push(newItem);
     renderGalleryView(data, wrapper, settings, app, source, ctx, containerEl);
+    renderTableView(data, wrapper, settings, app, source, ctx, containerEl);
     await updateCodeBlock(source, data, ctx, app, containerEl);
   };
   
@@ -206,7 +215,17 @@ function openEditModal(
   new GalleryItemForm(app, onEditItem, data[index]).open();
 }
 
-function renderTableView(data: GalleryItem[], container: HTMLElement, sort: SortState) {
+function renderTableView(
+  data: GalleryItem[],
+  container: HTMLElement,
+  settings: GalleryPluginSettings,
+  app: App,
+  source: string,
+  ctx: MarkdownPostProcessorContext,
+  rootContainer: HTMLElement
+) 
+  {
+  // const wrapper = container.createDiv({ cls: "gallery-grid" });
   const table = container.createEl("table", { cls: "gallery-table" });
   const thead = table.createEl("thead");
   const tbody = table.createEl("tbody");
@@ -229,4 +248,14 @@ function renderTableView(data: GalleryItem[], container: HTMLElement, sort: Sort
       row.createEl("td", { text: item[key] ?? "" });
     });
   });
+  // 添加按钮容器
+  const buttonRow = container.createDiv({ cls: "table-add-row" });
+  const addButton = buttonRow.createEl("button", {
+    cls: "table-add-button",
+    text: "+ 添加新项"
+  });
+  
+  addButton.onclick = () => {
+    openAddModal(data, table, settings, app, source, ctx, rootContainer);
+  };
 }
