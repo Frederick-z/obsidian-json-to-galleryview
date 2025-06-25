@@ -1,7 +1,7 @@
 {
   "id": "json-gallery-view",
   "name": "Json Gallery View",
-  "version": "0.1.0",
+  "version": "1.0.1",
   "minAppVersion": "v1.8.10",
   "description": "Render json inside code blocks as gallery cards",
   "author": "frederick-z",
