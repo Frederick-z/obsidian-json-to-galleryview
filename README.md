@@ -9,7 +9,7 @@ Rendering of large-scale data is not performed, as this plugin saves the data in
 
 # Current Features
 1. 🖼️ ​​Gallery View: Visualize JSON items as customizable cards with images and metadata
-![画廊视图](images/image.png)
+![画廊视图](images/gallery_card.png)
 
 2.📊 ​List View: Display data in a structured table
 ![列表视图](images/image-2.png)
