@@ -8,11 +8,17 @@
 
 /* 画廊卡片样式 - 匹配图片中的设计 */
 .gallery-card {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 20px;
+  padding: 15px;
   background-color: white;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  padding: 15px;
-  text-align: center;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
 }
 
 /* 头像区域 */
@@ -21,34 +27,23 @@
 }
 
 .gallery-avatar {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
+  width: 100px;
+  height: 100px;
+  border-radius: 8px; /* 圆角矩形 */
   object-fit: cover;
-  margin: 0 auto;
 }
 
 /* 信息区域 */
 .gallery-info {
-  font-size: 14px;
-}
-
-/* 字段行 */
-.gallery-field {
-  margin-bottom: 8px;
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
+  justify-content: center;
+  font-size: 14px;
+  line-height: 1.6;
+  gap: 2px;
+  white-space: pre-wrap; /* 可选，支持换行符 */
 }
 
-.gallery-key {
-  font-weight: bold;
-  text-align: left;
-}
-
-.gallery-value {
-  text-align: right;
-  flex-grow: 1;
-}
 
 /* 工具栏样式 */
 .gallery-toolbar {
@@ -315,6 +310,16 @@ button.active {
 
 /* 卡片样式 */
 .gallery-card {
+  display: flex;
+  flex-direction: row; /* 从上下结构变为左右结构 */
+  align-items: center;
+  justify-content: flex-start;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 15px;
+  text-align: left;
+  gap: 15px;
   position: relative;
   cursor: pointer;
   transition: transform 0.2s, box-shadow 0.2s;
@@ -349,3 +354,19 @@ button.active {
 .edit-button:hover {
   background-color: #f0f0f0;
 }
+
+.table-add-button {
+  margin-top: 15px;
+  padding: 10px 20px;
+  background-color: var(--interactive-accent);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.table-add-button:hover {
+  background-color: var(--interactive-accent-hover);
+}
+
