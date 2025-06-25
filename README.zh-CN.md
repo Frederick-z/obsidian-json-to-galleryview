@@ -10,7 +10,7 @@
 
 1. 🖼️ ​​画廊视图​​：将 JSON 项目可视化为可自定义的卡片，包含图片和元数据
    
-<img src="imagesgallery_card.png" width="50%">
+<img src="images/gallery_card.png" width="50%">
 
 2.📊 ​列表视图​​：在结构化表格中展示数据
 
